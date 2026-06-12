@@ -186,6 +186,8 @@
     .reveal-btn:hover{transform:translateY(-1px);filter:brightness(1.08);}
     .vote-result{display:inline-flex;gap:.6rem;font-size:.7rem;align-items:center;}
     .vote-result b{color:var(--gold);font-weight:600;}
+    .vote-clear{background:none;border:none;font-size:.7rem;color:var(--taupe-dk);cursor:pointer;padding:0 .15rem;line-height:1;transition:color .2s;}
+    .vote-clear:hover{color:var(--error);}
     /* ── BOOKMARKLET ── */
     .bm-drag{display:inline-block;font-family:var(--font-body);font-weight:500;font-size:.78rem;letter-spacing:.06em;color:#fff;background:var(--gold-grad);border-radius:999px;padding:.6rem 1.3rem;text-decoration:none;box-shadow:var(--shadow-gold);cursor:grab;}
     .bm-drag:active{cursor:grabbing;}
@@ -814,11 +816,12 @@
     const mine=vs.find(v=>v.userId===me);
     const both=mine&&vs.length>=2;
     const myR=mine?mine.rating:0;
-    let h='<div class="vote-row"><span class="stars'+(mine?' locked':'')+'">';
+    let h='<div class="vote-row"><span class="stars">';
     for(let i=1;i<=5;i++){
-      h+='<button class="star'+(i<=myR?' filled':'')+'"'+(mine?'':' onclick="castVote(\''+id+'\','+i+')"')+' title="'+i+' star'+(i>1?'s':'')+'">★</button>';
+      h+='<button class="star'+(i<=myR?' filled':'')+'" onclick="castVote(\''+id+'\','+i+')" title="'+(mine?'Change to ':'')+i+' star'+(i>1?'s':'')+'">★</button>';
     }
     h+='</span>';
+    if(mine){h+='<button class="vote-clear" onclick="clearIdeaVote(\''+id+'\')" title="Remove your rating">✕</button>';}
     if(both&&reveals[id]){
       h+='<span class="vote-result">'+vs.map(v=>'<span><b>'+esc((v.displayName||'?')[0])+':</b> '+v.rating+'★</span>').join('')+'</span>';
     }else if(both){
@@ -831,9 +834,25 @@
   }
   window.castVote=async function(linkId,rating){
     const u=auth.currentUser;if(!u)return;
-    await db.collection('ideaVotes').doc(linkId+'_'+u.uid).set({linkId:linkId,userId:u.uid,displayName:currentUserName(),rating:rating,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-    logActivity('Vote cast','Rated a link '+rating+'★','ideas');
-    toast('Vote locked in — hidden until you both rate');
+    const mine=(votes[linkId]||[]).find(v=>v.userId===u.uid);
+    if(mine&&Number(mine.rating)===rating)return;
+    const ref=db.collection('ideaVotes').doc(linkId+'_'+u.uid);
+    if(mine){
+      await ref.update({rating:rating,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+      logActivity('Vote changed','Changed a link rating to '+rating+'★','ideas');
+      toast('Rating updated');
+    }else{
+      await ref.set({linkId:linkId,userId:u.uid,displayName:currentUserName(),rating:rating,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+      logActivity('Vote cast','Rated a link '+rating+'★','ideas');
+      toast('Rating saved — hidden until you both rate');
+    }
+  };
+  window.clearIdeaVote=async function(linkId){
+    const u=auth.currentUser;if(!u)return;
+    if(!confirm('Remove your rating?'))return;
+    await db.collection('ideaVotes').doc(linkId+'_'+u.uid).delete();
+    logActivity('Vote removed','Removed a link rating','ideas');
+    toast('Rating removed');
   };
   window.revealVotes=async function(linkId){
     await db.collection('ideaVoteReveal').doc(linkId).set({revealed:true});
