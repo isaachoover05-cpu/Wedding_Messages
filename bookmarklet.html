@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Save-to-Wedding Bookmarklet · I & A</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ivory:#FAF7F2;--taupe:#C7B8A6;--taupe-dk:#9A8B7B;
+    --gold:#B8963E;--gold-lt:#D4B65A;--gold-grad:linear-gradient(135deg,#D4B65A 0%,#B8963E 100%);
+    --charcoal:#322E29;--card-bg:#FFFFFF;--line:rgba(167,148,120,.16);
+    --shadow-md:0 2px 4px rgba(50,46,41,.05),0 12px 28px rgba(50,46,41,.08);
+    --shadow-gold:0 4px 18px rgba(184,150,62,.22);
+    --spring:cubic-bezier(.34,1.4,.64,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Jost',sans-serif;font-weight:300;color:var(--charcoal);background:var(--ivory);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem;}
+  body::before{content:'';position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 85% 55% at 50% -10%,rgba(184,150,62,.07),transparent 60%);}
+  .card{position:relative;background:var(--card-bg);border:1px solid var(--line);border-radius:14px;padding:2.2rem 2rem;max-width:480px;width:100%;box-shadow:var(--shadow-md);}
+  h1{font-family:'Cormorant Garamond',serif;font-weight:500;font-size:1.5rem;margin-bottom:.3rem;}
+  .sub{font-size:.8rem;color:var(--taupe-dk);margin-bottom:1.3rem;}
+  .bm-drag{display:inline-block;font-weight:500;font-size:.82rem;letter-spacing:.06em;color:#fff;background:var(--gold-grad);border-radius:999px;padding:.7rem 1.5rem;text-decoration:none;box-shadow:var(--shadow-gold);cursor:grab;transition:transform .3s var(--spring);}
+  .bm-drag:hover{transform:translateY(-2px);}
+  .bm-drag:active{cursor:grabbing;}
+  .drop{text-align:center;border:2px dashed rgba(184,150,62,.35);border-radius:10px;padding:1.4rem 1rem;margin-bottom:1.2rem;background:rgba(184,150,62,.03);}
+  .drop p{font-size:.66rem;color:var(--taupe-dk);margin-top:.7rem;letter-spacing:.05em;text-transform:uppercase;}
+  ol{font-size:.82rem;color:var(--taupe-dk);line-height:1.8;padding-left:1.2rem;}
+  ol strong{color:var(--charcoal);font-weight:500;}
+  .note{font-size:.68rem;color:var(--taupe);font-style:italic;margin-top:1rem;}
+  a.back{display:inline-block;margin-top:1.2rem;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);text-decoration:none;}
+  a.back:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>📎 Save-to-Wedding Bookmarklet</h1>
+    <p class="sub">One-click capture from any page into the Idea Board.</p>
+    <div class="drop">
+      <a id="bmDragBtn" class="bm-drag" href="#" onclick="return false;">💍 Save to Wedding</a>
+      <p>Drag this button to your bookmarks bar</p>
+    </div>
+    <ol>
+      <li>Show your bookmarks bar — <strong>Ctrl/Cmd + Shift + B</strong>.</li>
+      <li><strong>Drag the gold button</strong> up onto the bar. It becomes a bookmark.</li>
+      <li>While browsing any shop or inspiration page, click <strong>💍 Save to Wedding</strong>.</li>
+      <li>A small window opens with the page's title, link, price and description pre-filled — pick a category, rate it, and save. The window closes itself.</li>
+    </ol>
+    <p class="note">Not signed in? The window will ask you to log in first, then continue straight to the save form. Works for both of you.</p>
+    <a class="back" href="ideas.html">← Back to the Idea Board</a>
+  </div>
+<script>
+  (function(){
+    var base=location.href.replace(/bookmarklet\.html.*$/,'ideas.html');
+    var js="(function(){var d=document,u=location.href,t=d.title||'';"
+      +"var md=d.querySelector('meta[property=\\x22og:description\\x22],meta[name=\\x22description\\x22]');"
+      +"var ds=(md&&md.content)?md.content.slice(0,140):'';"
+      +"var p='';var mp=d.querySelector('meta[property=\\x22og:price:amount\\x22],meta[itemprop=\\x22price\\x22]');"
+      +"if(mp&&mp.content)p='$'+mp.content;"
+      +"if(!p){var m=(d.body?d.body.innerText:'').match(/\\$\\d[\\d,]*(?:\\.\\d{2})?/);if(m)p=m[0];}"
+      +"window.open('"+base+"?bookmarklet=1&url='+encodeURIComponent(u)+'&title='+encodeURIComponent(t)+'&price='+encodeURIComponent(p)+'&desc='+encodeURIComponent(ds),'hooverSave','width=520,height=640');})();";
+    document.getElementById('bmDragBtn').setAttribute('href','javascript:'+js);
+  })();
+</script>
+</body>
+</html>
